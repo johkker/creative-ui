@@ -40,7 +40,7 @@ export async function captureAndInspect(url: string, outputDirectory: string): P
       const screenshot = join(outputDirectory, `${viewport.name}-${viewport.width}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
       const metrics = await page.evaluate(() => {
-        const elements = [...document.querySelectorAll<HTMLElement>("body *")];
+        const elements = Array.from(document.querySelectorAll<HTMLElement>("body *"));
         const styles = elements.map((element) => ({ element, style: getComputedStyle(element) }));
         const radiusValue = (value: string) => Number.parseFloat(value) || 0;
         const backgrounds = new Set<string>();
@@ -69,7 +69,9 @@ export async function captureAndInspect(url: string, outputDirectory: string): P
       captures.push({ ...viewport, screenshot, metrics });
       await page.close();
     }
-  } finally { await browser.close(); }
+  } finally {
+    await browser.close();
+  }
   const result = { url, captures };
   await writeFile(join(outputDirectory, "inspection.json"), `${JSON.stringify(result, null, 2)}\n`);
   return result;
