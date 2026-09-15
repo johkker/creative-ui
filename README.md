@@ -8,6 +8,73 @@ The project separates **design intent** from implementation. Users define a Desi
 
 > Status: experimental v0.1. Target projects do **not** need React, TSX, Tailwind or any specific framework.
 
+## Quick start
+
+Run it directly in any frontend project:
+
+```bash
+npx creative-ui-agent init
+```
+
+or with pnpm:
+
+```bash
+pnpm dlx creative-ui-agent init
+```
+
+This writes:
+
+```text
+.creative-ui/
+├── design-dna.json
+└── DESIGN.md
+```
+
+Then generate agent rules:
+
+```bash
+npx creative-ui-agent install-rules
+```
+
+If you prefer a global command:
+
+```bash
+npm install -g creative-ui-agent
+creative-ui init
+```
+
+## Typical workflow
+
+```bash
+# 1. Define the visual DNA
+npx creative-ui-agent init
+
+# 2. Open the browser-based art-direction studio
+npx creative-ui-agent studio
+
+# 3. Explore human visual-language references
+npx creative-ui-agent lineage recommend
+npx creative-ui-agent lineage list --query "Brazil print"
+npx creative-ui-agent lineage add constructivism --weight 0.4 --borrow composition,geometry,typography
+npx creative-ui-agent lineage synthesize
+
+# 4. Install rules for coding agents
+npx creative-ui-agent install-rules
+
+# 5. Review an existing frontend
+npx creative-ui-agent critique .
+npx creative-ui-agent unslop .
+
+# 6. Capture responsive screenshots + DOM metrics
+npx creative-ui-agent capture http://localhost:3000
+```
+
+The `capture` command uses Playwright. Install Chromium once if needed:
+
+```bash
+npx playwright install chromium
+```
+
 ## Implemented
 
 - framework-agnostic Design DNA schema
@@ -23,7 +90,9 @@ The project separates **design intent** from implementation. Users define a Desi
 - agent adapters for `AGENTS.md`, `CLAUDE.md` and Cursor rules
 - agent-facing Creative UI skill
 
-## Packages
+## Packages inside the monorepo
+
+The npm distribution is intentionally a **single package** (`creative-ui-agent`) for easy use. Internally the repository remains modular:
 
 - `@creative-ui/core` — schema, DNA, brief generation, critique and anti-slop heuristics
 - `@creative-ui/lineage` — catalog, search, recommendation and synthesis
@@ -33,37 +102,7 @@ The project separates **design intent** from implementation. Users define a Desi
 - `@creative-ui/adapters` — agent instruction integrations
 - `skill/` — reusable agent-facing methodology
 
-## Start
-
-```bash
-pnpm install
-pnpm build
-pnpm creative-ui init
-```
-
-The Design Director writes `.creative-ui/design-dna.json` and generated `.creative-ui/DESIGN.md`.
-
-## Commands
-
-```bash
-pnpm creative-ui init
-pnpm creative-ui inspect
-pnpm creative-ui studio
-pnpm creative-ui lineage list --query "Brazil print"
-pnpm creative-ui lineage recommend
-pnpm creative-ui lineage add constructivism --weight 0.4 --borrow composition,geometry,typography
-pnpm creative-ui lineage synthesize
-pnpm creative-ui critique .
-pnpm creative-ui unslop .
-pnpm creative-ui capture http://localhost:3000
-pnpm creative-ui install-rules
-```
-
-For browser capture, install Chromium once:
-
-```bash
-pnpm exec playwright install chromium
-```
+The internal workspace packages are bundled into the public CLI and are not required in target projects.
 
 ## Visual lineage, not themes
 
@@ -88,6 +127,16 @@ Creative UI distributes experimentation rather than maximizing it everywhere. Hi
 `creative-ui critique` statically inspects HTML, CSS, JS/TS, JSX/TSX, Vue, Svelte and Astro. `creative-ui unslop` writes `.creative-ui/UNSLOP.md`. `capture` creates responsive screenshots and DOM metrics for human or multimodal-agent review.
 
 Static heuristics cannot tell whether a design is actually good. They exist to catch repeated defaults, not to replace art direction.
+
+## Local development
+
+```bash
+git clone https://github.com/johkker/creative-ui.git
+cd creative-ui
+pnpm install
+pnpm verify
+pnpm creative-ui init
+```
 
 ## Philosophy
 
