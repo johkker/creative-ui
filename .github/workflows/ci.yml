@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,4 +19,6 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
-      - run: pnpm typecheck
+      - run: pnpm verify
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
