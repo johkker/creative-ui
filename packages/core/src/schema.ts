@@ -38,6 +38,27 @@ export const noveltyBudgetSchema = z.object({
   color: unitInterval,
   navigation: unitInterval,
   interaction: unitInterval,
+  imagery: unitInterval.default(0.65),
+  texture: unitInterval.default(0.55),
+});
+
+export const lineageChannelSchema = z.enum([
+  "composition",
+  "geometry",
+  "typography",
+  "color",
+  "texture",
+  "motion",
+  "imagery",
+  "interaction",
+  "symbolism",
+]);
+
+export const visualLineageSelectionSchema = z.object({
+  referenceId: z.string().min(1),
+  weight: unitInterval,
+  borrow: z.array(lineageChannelSchema).min(1),
+  notes: z.string().optional(),
 });
 
 export const designDNASchema = z.object({
@@ -47,15 +68,19 @@ export const designDNASchema = z.object({
   axes: designAxesSchema,
   novelty: noveltyBudgetSchema,
   vibes: z.array(z.string()).default([]),
+  visualLineage: z.array(visualLineageSelectionSchema).default([]),
   avoid: z.array(z.string()).default([]),
   constraints: z.object({
     accessibility: z.boolean().default(true),
     responsive: z.boolean().default(true),
     performance: z.enum(["strict", "balanced", "expressive"]).default("balanced"),
+    preserveConventionalNavigation: z.boolean().default(true),
   }),
 });
 
 export type Composition = z.infer<typeof compositionSchema>;
 export type DesignAxes = z.infer<typeof designAxesSchema>;
 export type NoveltyBudget = z.infer<typeof noveltyBudgetSchema>;
+export type LineageChannel = z.infer<typeof lineageChannelSchema>;
+export type VisualLineageSelection = z.infer<typeof visualLineageSelectionSchema>;
 export type DesignDNA = z.infer<typeof designDNASchema>;

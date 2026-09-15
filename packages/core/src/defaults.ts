@@ -14,7 +14,7 @@ export const defaultDesignDNA: DesignDNA = {
     physicality: 0.45,
     typographicExpression: 0.7,
     contrast: 0.78,
-    texture: 0.4
+    texture: 0.4,
   },
   novelty: {
     overall: 0.68,
@@ -23,20 +23,24 @@ export const defaultDesignDNA: DesignDNA = {
     motion: 0.6,
     color: 0.45,
     navigation: 0.2,
-    interaction: 0.7
+    interaction: 0.7,
+    imagery: 0.72,
+    texture: 0.58,
   },
   vibes: ["editorial", "expressive", "intentional"],
+  visualLineage: [],
   avoid: [
     "generic SaaS hero",
     "three identical feature cards",
     "decorative purple-blue gradients",
     "glassmorphism without purpose",
     "uniform rounded containers",
-    "bento grids used as decoration"
+    "bento grids used as decoration",
   ],
   constraints: {
     accessibility: true,
     responsive: true,
-    performance: "balanced"
-  }
+    performance: "balanced",
+    preserveConventionalNavigation: true,
+  },
 };

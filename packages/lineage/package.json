@@ -1,5 +1,5 @@
 {
-  "name": "@creative-ui/core",
+  "name": "@creative-ui/lineage",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "zod": "^3.23.8"
+    "@creative-ui/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
