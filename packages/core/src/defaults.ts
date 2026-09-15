@@ -1,0 +1,42 @@
+import type { DesignDNA } from "./schema.js";
+
+export const defaultDesignDNA: DesignDNA = {
+  version: 1,
+  concept: "expressive digital product with deliberate visual tension",
+  composition: "asymmetric-anchor",
+  axes: {
+    density: 0.55,
+    experimentation: 0.7,
+    rawness: 0.35,
+    layering: 0.6,
+    asymmetry: 0.7,
+    kinetic: 0.45,
+    physicality: 0.45,
+    typographicExpression: 0.7,
+    contrast: 0.78,
+    texture: 0.4
+  },
+  novelty: {
+    overall: 0.68,
+    layout: 0.85,
+    typography: 0.65,
+    motion: 0.6,
+    color: 0.45,
+    navigation: 0.2,
+    interaction: 0.7
+  },
+  vibes: ["editorial", "expressive", "intentional"],
+  avoid: [
+    "generic SaaS hero",
+    "three identical feature cards",
+    "decorative purple-blue gradients",
+    "glassmorphism without purpose",
+    "uniform rounded containers",
+    "bento grids used as decoration"
+  ],
+  constraints: {
+    accessibility: true,
+    responsive: true,
+    performance: "balanced"
+  }
+};
