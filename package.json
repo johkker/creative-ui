@@ -1,15 +1,14 @@
 {
   "name": "creative-ui",
+  "version": "0.1.0",
   "private": false,
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "creative-ui": "pnpm --filter @creative-ui/cli dev --"
+    "creative-ui": "pnpm --filter @creative-ui/cli dev --",
+    "dev": "pnpm creative-ui init"
   },
-  "devDependencies": {
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
-  }
+  "devDependencies": { "tsup": "^8.3.5", "typescript": "^5.7.2" }
 }

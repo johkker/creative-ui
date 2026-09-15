@@ -2,70 +2,37 @@
 import React from "react";
 import { Command } from "commander";
 import { render } from "ink";
-import { designDNASchema, generateDesignBrief, type LineageChannel } from "@creative-ui/core";
+import { designDNASchema, generateDesignBrief, lineageChannelSchema, type LineageChannel } from "@creative-ui/core";
 import { recommendVisualReferences, searchVisualReferences, synthesizeVisualLineage, visualReferenceById, visualReferenceCatalog } from "@creative-ui/lineage";
 import { InitApp } from "./App.js";
 import { critiqueProject, loadDNA, saveDNA, writeUnslopPlan } from "./project.js";
 
 const program = new Command().name("creative-ui").description("Framework-agnostic design-direction tooling for AI-generated frontends").version("0.1.0");
-
 program.command("init").description("Open the terminal design director and create project DNA").action(async () => { const instance = render(<InitApp />); await instance.waitUntilExit(); });
 program.command("inspect").description("Print the current project Design DNA").option("--json", "Print machine-readable JSON").action(async (options) => {
-  const dna = await loadDNA();
-  if (options.json) return console.log(JSON.stringify(dna, null, 2));
-  console.log(`\nCreative UI — ${dna.concept}`);
-  console.log(`Composition: ${dna.composition}`);
-  console.log(`Experimentation: ${Math.round(dna.axes.experimentation * 100)}%`);
-  console.log(`Asymmetry: ${Math.round(dna.axes.asymmetry * 100)}%`);
-  console.log(`Novelty: ${Math.round(dna.novelty.overall * 100)}%`);
-  console.log(`Lineage references: ${dna.visualLineage.length}\n`);
+  const dna = await loadDNA(); if (options.json) return console.log(JSON.stringify(dna, null, 2));
+  console.log(`\nCreative UI — ${dna.concept}`); console.log(`Composition: ${dna.composition}`); console.log(`Experimentation: ${Math.round(dna.axes.experimentation * 100)}%`); console.log(`Asymmetry: ${Math.round(dna.axes.asymmetry * 100)}%`); console.log(`Novelty: ${Math.round(dna.novelty.overall * 100)}%`); console.log(`Lineage references: ${dna.visualLineage.length}\n`);
 });
 program.command("sync").description("Validate design-dna.json and regenerate DESIGN.md").action(async () => { const dna = await loadDNA(); await saveDNA(designDNASchema.parse(dna)); console.log("Regenerated .creative-ui/DESIGN.md"); });
 
 const lineage = program.command("lineage").description("Explore and manage human visual-language references");
-lineage.command("list").description("List catalog references").option("-q, --query <query>", "Search names, regions, tags and categories").option("--json", "Machine-readable output").action((options) => {
-  const results = options.query ? searchVisualReferences(options.query) : visualReferenceCatalog;
-  if (options.json) return console.log(JSON.stringify(results, null, 2));
-  for (const ref of results) console.log(`${ref.id.padEnd(28)} ${ref.name} · ${ref.category}`);
-  console.log(`\n${results.length} references`);
-});
-lineage.command("recommend").description("Recommend references from the current Design DNA").option("--limit <number>", "Maximum recommendations", "10").action(async (options) => {
-  const dna = await loadDNA();
-  for (const item of recommendVisualReferences(dna, { limit: Number(options.limit), includeCounterbalances: 2 })) {
-    console.log(`${item.role === "counterbalance" ? "↔" : "→"} ${item.reference.id} — ${item.reference.name} (${Math.round(item.score * 100)}%)`);
-    console.log(`  ${item.reasons.join("; ")}`);
-  }
-});
+lineage.command("list").description("List catalog references").option("-q, --query <query>", "Search names, regions, tags and categories").option("--json", "Machine-readable output").action((options) => { const results = options.query ? searchVisualReferences(options.query) : visualReferenceCatalog; if (options.json) return console.log(JSON.stringify(results, null, 2)); for (const ref of results) console.log(`${ref.id.padEnd(28)} ${ref.name} · ${ref.category}`); console.log(`\n${results.length} references`); });
+lineage.command("recommend").description("Recommend references from the current Design DNA").option("--limit <number>", "Maximum recommendations", "10").action(async (options) => { const dna = await loadDNA(); for (const item of recommendVisualReferences(dna, { limit: Number(options.limit), includeCounterbalances: 2 })) { console.log(`${item.role === "counterbalance" ? "↔" : "→"} ${item.reference.id} — ${item.reference.name} (${Math.round(item.score * 100)}%)`); console.log(`  ${item.reasons.join("; ")}`); } });
 lineage.command("add").argument("<referenceId>").option("-w, --weight <number>", "Influence weight 0..1", "0.35").option("-b, --borrow <channels>", "Comma-separated channels; defaults to the reference's strongest channels").description("Add a visual lineage reference to project DNA").action(async (referenceId, options) => {
-  const reference = visualReferenceById.get(referenceId);
-  if (!reference) throw new Error(`Unknown reference: ${referenceId}`);
+  const reference = visualReferenceById.get(referenceId); if (!reference) throw new Error(`Unknown reference: ${referenceId}`);
   const dna = await loadDNA();
-  const borrow = options.borrow ? options.borrow.split(",").map((item: string) => item.trim()).filter(Boolean) as LineageChannel[] : reference.primaryChannels.slice(0, 3);
+  const borrow = options.borrow ? options.borrow.split(",").map((item: string) => lineageChannelSchema.parse(item.trim())) as LineageChannel[] : reference.primaryChannels.slice(0, 3);
+  const parsedWeight = Number(options.weight); if (!Number.isFinite(parsedWeight)) throw new Error("Weight must be a number between 0 and 1");
   const existing = dna.visualLineage.filter((item) => item.referenceId !== referenceId);
-  dna.visualLineage = [...existing, { referenceId, weight: Math.max(0, Math.min(1, Number(options.weight))), borrow }];
-  await saveDNA(dna);
-  console.log(`Added ${reference.name}`);
+  dna.visualLineage = [...existing, { referenceId, weight: Math.max(0, Math.min(1, parsedWeight)), borrow }]; await saveDNA(dna); console.log(`Added ${reference.name}`);
 });
 lineage.command("remove").argument("<referenceId>").description("Remove a visual lineage reference").action(async (referenceId) => { const dna = await loadDNA(); dna.visualLineage = dna.visualLineage.filter((item) => item.referenceId !== referenceId); await saveDNA(dna); console.log(`Removed ${referenceId}`); });
-lineage.command("synthesize").description("Show how selected references translate into interface principles").option("--json", "Machine-readable output").action(async (options) => {
-  const dna = await loadDNA(); const synthesis = synthesizeVisualLineage(dna.visualLineage);
-  if (options.json) return console.log(JSON.stringify(synthesis, null, 2));
-  for (const [channel, principles] of Object.entries(synthesis.channelPrinciples)) { console.log(`\n${channel.toUpperCase()}`); for (const principle of principles ?? []) console.log(`  - ${principle}`); }
-  if (synthesis.tensions.length) console.log(`\nTENSIONS\n${synthesis.tensions.map((item) => `  - ${item}`).join("\n")}`);
-  if (synthesis.warnings.length) console.log(`\nWARNINGS\n${synthesis.warnings.map((item) => `  - ${item}`).join("\n")}`);
-});
+lineage.command("synthesize").description("Show how selected references translate into interface principles").option("--json", "Machine-readable output").action(async (options) => { const dna = await loadDNA(); const synthesis = synthesizeVisualLineage(dna.visualLineage); if (options.json) return console.log(JSON.stringify(synthesis, null, 2)); for (const [channel, principles] of Object.entries(synthesis.channelPrinciples)) { console.log(`\n${channel.toUpperCase()}`); for (const principle of principles ?? []) console.log(`  - ${principle}`); } if (synthesis.tensions.length) console.log(`\nTENSIONS\n${synthesis.tensions.map((item) => `  - ${item}`).join("\n")}`); if (synthesis.warnings.length) console.log(`\nWARNINGS\n${synthesis.warnings.map((item) => `  - ${item}`).join("\n")}`); });
 
-program.command("critique").argument("[path]", "Project directory or source file", ".").description("Run framework-agnostic static anti-slop critique").option("--json", "Machine-readable output").action(async (path, options) => {
-  const { files, report } = await critiqueProject(path);
-  if (options.json) return console.log(JSON.stringify({ files, report }, null, 2));
-  console.log(`\nAI slop score: ${report.slop.score}/100 — ${report.slop.summary}`); console.log(`Analyzed ${files.length} source files.`);
-  for (const finding of report.slop.findings) { console.log(`\n[${finding.severity.toUpperCase()}] ${finding.message}`); if (finding.evidence) console.log(`  ${finding.evidence}`); console.log(`  → ${finding.suggestion}`); }
-  console.log("\nVisual review prompts:"); for (const prompt of report.prompts) console.log(`  - ${prompt}`);
-});
+program.command("critique").argument("[path]", "Project directory or source file", ".").description("Run framework-agnostic static anti-slop critique").option("--json", "Machine-readable output").action(async (path, options) => { const { files, report } = await critiqueProject(path); if (options.json) return console.log(JSON.stringify({ files, report }, null, 2)); console.log(`\nAI slop score: ${report.slop.score}/100 — ${report.slop.summary}`); console.log(`Analyzed ${files.length} source files.`); for (const finding of report.slop.findings) { console.log(`\n[${finding.severity.toUpperCase()}] ${finding.message}`); if (finding.evidence) console.log(`  ${finding.evidence}`); console.log(`  → ${finding.suggestion}`); } console.log("\nVisual review prompts:"); for (const prompt of report.prompts) console.log(`  - ${prompt}`); });
 program.command("unslop").argument("[path]", "Project directory or source file", ".").description("Create a prioritized anti-slop intervention plan").action(async (path) => { const result = await writeUnslopPlan(path); console.log(`Wrote ${result.output}`); console.log(`Slop score ${result.report.score}/100 across ${result.files.length} files.`); });
 program.command("brief").description("Print the generated agent brief").action(async () => console.log(generateDesignBrief(await loadDNA())));
 program.command("studio").description("Start the local visual Design DNA studio").option("-p, --port <port>", "Port", "4173").option("--no-open", "Do not open a browser").action(async (options) => { const { startStudio } = await import("@creative-ui/studio"); await startStudio({ cwd: process.cwd(), port: Number(options.port), open: options.open }); });
 program.command("capture").argument("<url>").description("Capture responsive screenshots and DOM metrics with Playwright").option("-o, --out <directory>", "Output directory", ".creative-ui/captures").action(async (url, options) => { const { captureAndInspect } = await import("@creative-ui/inspector"); const result = await captureAndInspect(url, options.out); console.log(JSON.stringify(result, null, 2)); });
 program.command("install-rules").description("Generate agent-specific instruction files that point to Creative UI").option("-t, --targets <targets>", "Comma-separated targets: codex,claude,cursor", "codex,claude,cursor").action(async (options) => { const { installAgentRules } = await import("@creative-ui/adapters"); const written = await installAgentRules(process.cwd(), options.targets.split(",").map((item: string) => item.trim())); for (const path of written) console.log(`Wrote ${path}`); });
-
 await program.parseAsync(process.argv);
